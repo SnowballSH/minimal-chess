@@ -13,7 +13,13 @@ function isNearRow(a: number, b: number): boolean {
 export class Board {
     public board: (Piece | null)[];
     public colorToMove: Color = Color.Yellow;
-    public history: (Piece | null)[][] = [];
+    public history: {
+        board: (Piece | null)[],
+        status: Status,
+        pool: Piece[],
+    }[] = [];
+    public status: Status = Status.OnGoing;
+    public pool: Piece[] = [];
 
     constructor() {
         this.board = [
@@ -40,6 +46,14 @@ export class Board {
         }
     }
 
+    * emptySquares() {
+        for (const n of this.board.entries()) {
+            if (n[1] === null) {
+                yield n;
+            }
+        }
+    }
+
     isMyPieceOnIndex(color: Color, index: number): boolean {
         return this.board[index]?.color === color;
     }
@@ -49,21 +63,48 @@ export class Board {
     }
 
     makeMove(m: Move) {
-        this.history.push(this.board);
-        const p = this.board[m.from];
-        this.board[m.from] = null;
-        this.board[m.to] = p;
+        this.history.push({
+            board: this.board,
+            status: this.status,
+            pool: this.pool,
+        });
+
+        if (m.flag === Flag.Revive) {
+            let p = this.pool[m.from - 64];
+            delete this.pool[m.from - 64];
+            this.board[m.to] = p;
+        } else {
+            const p = this.board[m.from];
+            this.board[m.from] = null;
+            const t = this.board[m.to];
+            this.board[m.to] = p;
+            if (m.flag === Flag.Capture && t !== null) {
+                // win detection
+                if (t.type === PieceType.Jiang) {
+                    this.status = t.color === Color.Yellow ? Status.BlueWin : Status.YellowWin;
+                } else {
+                    t.color ^= 1;
+                    this.pool.push(t);
+                }
+            }
+        }
+
         this.colorToMove ^= 1;
     }
 
     undoMove() {
-        this.board = this.history.pop()!;
+        const h = this.history.pop()!;
+        this.board = h.board;
+        this.status = h.status;
+        this.pool = h.pool;
         this.colorToMove ^= 1;
     }
 
     * legalMoves() {
+        // normal moves
         for (const [index, piece] of this.piecesForColor(this.colorToMove)) {
             if (piece === null) continue;
+
             for (const dir of piece.pieceDirections()) {
                 let newI;
                 let m: Move | undefined = undefined;
@@ -126,12 +167,29 @@ export class Board {
                 }
             }
         }
+
+        // revive
+        for (const [index, piece] of this.pool.entries()) {
+            if (piece === undefined) continue;
+            if (piece.color !== this.colorToMove) continue;
+
+            for (const [i] of this.emptySquares()) {
+                yield new Move(64 + index, i, Flag.Revive);
+            }
+        }
     }
 }
 
 export enum Flag {
     Capture,
+    Revive,
     Quiet
+}
+
+export enum Status {
+    OnGoing,
+    YellowWin,
+    BlueWin,
 }
 
 export class Move {
