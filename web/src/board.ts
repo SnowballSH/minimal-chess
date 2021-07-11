@@ -20,6 +20,9 @@ export class Board {
     }[] = [];
     public status: Status = Status.OnGoing;
     public pool: Piece[] = [];
+    hashTable: Uint32Array[] = [];
+    hashTableOther: Uint32Array;
+    public hash: number = 0;
 
     constructor() {
         this.board = [
@@ -36,6 +39,66 @@ export class Board {
             null,
             new Piece(PieceType.Wang, Color.Blue),
         ];
+
+        for (let i = 0; i < 22; i++) {
+            this.hashTable[i] = crypto.getRandomValues(new Uint32Array(10));
+        }
+
+        this.hashTableOther = crypto.getRandomValues(new Uint32Array(2));
+
+        this.calculateHash();
+    }
+
+    // Syntax: 12 digits of pieces on board (0-9 or *) + " " + all valid pool items (0-9) + " " + color to move + status
+    static fromFEN(fen: string) {
+        const [onBoard, inPool, others] = fen.split(" ");
+        let board = [];
+        for (const ch of onBoard) {
+            let val: number = parseInt(ch);
+            if (isNaN(val)) board.push(null);
+            else board.push(new Piece(val % 5, val / 5));
+        }
+        let pool = [];
+        for (const ch of inPool) {
+            let val: number = parseInt(ch);
+            pool.push(new Piece(val % 5, val % 5));
+        }
+        let bd = new Board();
+        bd.board = board;
+        bd.pool = pool;
+        bd.colorToMove = parseInt(others[0]);
+        bd.status = parseInt(others[1]);
+
+        return bd;
+    }
+
+    toFEN() {
+        let s = "";
+
+        s += this.board.map(x => x === null ? "*" : (x.type + 5 * x.color).toString()).join("");
+        s += " ";
+        s += this.pool.filter(x => x !== undefined).map(x => (x.type + 5 * x.color).toString()).join("");
+        s += " ";
+        s += this.colorToMove;
+        s += this.status;
+
+        return s;
+    }
+
+    calculateHash() {
+        this.hash = 0;
+        for (const [index, piece] of this.board.entries()) {
+            if (piece !== null && piece !== undefined) {
+                this.hash ^= this.hashTable[index][piece.type + piece.color * 5];
+            }
+        }
+        for (const [index, piece] of this.pool
+            .filter(x => x !== undefined)
+            .sort((a, b) => a.color - b.color)
+            .entries()) {
+            this.hash ^= this.hashTable[index + 12][piece.type + piece.color * 5];
+        }
+        this.hash ^= this.hashTableOther[this.colorToMove];
     }
 
     * piecesForColor(color: Color) {
@@ -64,19 +127,19 @@ export class Board {
 
     makeMove(m: Move) {
         this.history.push({
-            board: this.board,
+            board: [...this.board],
             status: this.status,
-            pool: this.pool,
+            pool: [...this.pool],
         });
 
         if (m.flag === Flag.Revive) {
-            let p = this.pool[m.from - 64];
-            delete this.pool[m.from - 64];
+            let p = this.pool[m.from - 12];
             this.board[m.to] = p;
+            delete this.pool[m.from - 12];
         } else {
             const p = this.board[m.from];
             this.board[m.from] = null;
-            const t = this.board[m.to];
+            const t = Object.create(this.board[m.to]);
             this.board[m.to] = p;
             if (m.flag === Flag.Capture && t !== null) {
                 // win detection
@@ -90,6 +153,9 @@ export class Board {
         }
 
         this.colorToMove ^= 1;
+
+        // TODO replace with updating method
+        this.calculateHash();
     }
 
     undoMove() {
@@ -98,6 +164,7 @@ export class Board {
         this.status = h.status;
         this.pool = h.pool;
         this.colorToMove ^= 1;
+        this.calculateHash();
     }
 
     * legalMoves() {
@@ -174,7 +241,7 @@ export class Board {
             if (piece.color !== this.colorToMove) continue;
 
             for (const [i] of this.emptySquares()) {
-                yield new Move(64 + index, i, Flag.Revive);
+                yield new Move(12 + index, i, Flag.Revive);
             }
         }
     }

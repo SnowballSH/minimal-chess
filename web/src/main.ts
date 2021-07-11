@@ -1,5 +1,6 @@
 import './style.css';
-import {Board, Color, Piece, PieceType, Status} from "./board";
+import {Board, Color, Move, Piece, PieceType, Status} from "./board";
+import {BasicSearcher} from "./algorithm";
 
 let board = new Board();
 let selected: number | null = null;
@@ -46,6 +47,8 @@ function drawPieceOnSquare(square: HTMLDivElement, val: Piece) {
 }
 
 function updateBoard() {
+    // console.log(searcher.negaRoot(board, 4));
+
     for (let index = 0; index < 12; index++) {
         let val = board.board[index];
         let square = document.querySelector<HTMLDivElement>(`#square${index}`)!;
@@ -88,10 +91,41 @@ function showLegalMoves(i: number) {
     }
 }
 
+let historyMoves: Move[] = [];
+
 // @ts-ignore
-window.showLegalMoves = showLegalMoves;
+window.nextMove = function () {
+    const k = historyMoves.shift();
+    if (k === undefined) return;
+    board.makeMove(k);
+    clearLegalMoves();
+    updateBoard();
+};
+
 // @ts-ignore
-window.clearLegalMoves = clearLegalMoves;
+window.lastMove = function () {
+    if (board.history.length === 0) return;
+    board.undoMove();
+    clearLegalMoves();
+    updateBoard();
+};
+
+let searcher = new BasicSearcher();
+
+function search() {
+    return searcher.negaRoot(board, 6);
+}
+
+// @ts-ignore
+window.playBestMove = function () {
+    let res = search();
+    console.log(res);
+    console.log(searcher.depth, searcher.seldepth);
+    board.makeMove(res[0]!);
+    historyMoves.push(res[0]!);
+    clearLegalMoves();
+    updateBoard();
+};
 
 function init() {
     document.onclick = e => {
@@ -102,6 +136,7 @@ function init() {
             for (const m of board.legalMoves()) {
                 if (m.from === selected && m.to === idx) {
                     board.makeMove(m);
+                    historyMoves.push(m);
                     clearLegalMoves();
                     updateBoard();
 
@@ -125,12 +160,12 @@ function init() {
         } else if (k.startsWith("poolsq")) {
             const idx = parseInt(k.split("poolsq")[1]);
 
-            if (selected === 64 + idx) {
+            if (selected === 12 + idx) {
                 clearLegalMoves();
                 selected = null;
             } else {
-                showLegalMoves(64 + idx);
-                selected = 64 + idx;
+                showLegalMoves(12 + idx);
+                selected = 12 + idx;
             }
         } else {
             clearLegalMoves();
