@@ -139,9 +139,23 @@ export class Board {
         } else {
             const p = this.board[m.from];
             this.board[m.from] = null;
-            const t = Object.create(this.board[m.to]);
-            this.board[m.to] = p;
-            if (m.flag === Flag.Capture && t !== null) {
+            if (m.flag === Flag.Capture) {
+                const t = Object.create(this.board[m.to]);
+                this.board[m.to] = p;
+                // win detection
+                if (t.type === PieceType.Jiang && this.status === Status.OnGoing) {
+                    this.status = t.color === Color.Yellow ? Status.BlueWin : Status.YellowWin;
+                } else {
+                    t.color ^= 1;
+                    if (t.type === PieceType.Hou) {
+                        this.pool.push(new Piece(PieceType.Zi, t.color));
+                    } else {
+                        this.pool.push(t);
+                    }
+                }
+            } else if (m.flag === Flag.CapturePromotion) {
+                const t = Object.create(this.board[m.to]);
+                this.board[m.to] = p !== null ? new Piece(PieceType.Hou, p.color) : null;
                 // win detection
                 if (t.type === PieceType.Jiang && this.status === Status.OnGoing) {
                     this.status = t.color === Color.Yellow ? Status.BlueWin : Status.YellowWin;
@@ -149,6 +163,10 @@ export class Board {
                     t.color ^= 1;
                     this.pool.push(t);
                 }
+            } else if (m.flag === Flag.QuietPromotion) {
+                this.board[m.to] = p !== null ? new Piece(PieceType.Hou, p.color) : null;
+            } else if (m.flag === Flag.Quiet) {
+                this.board[m.to] = p;
             }
         }
 
@@ -174,7 +192,7 @@ export class Board {
 
             for (const dir of piece.pieceDirections()) {
                 let newI;
-                let m: Move | undefined = undefined;
+                let m: Move | undefined;
                 switch (dir) {
                     case Direction.N:
                         newI = index - 4;
@@ -230,6 +248,10 @@ export class Board {
                     if (this.isOpponentPieceOnIndex(this.colorToMove, m.to)) {
                         m.flag = Flag.Capture;
                     }
+                    if (piece.type === PieceType.Zi && (m.to % 4 === 0 || m.to % 4 === 3)) {
+                        if (m.flag === Flag.Capture) m.flag = Flag.CapturePromotion;
+                        else m.flag = Flag.QuietPromotion;
+                    }
                     yield m;
                 }
             }
@@ -248,6 +270,8 @@ export class Board {
 }
 
 export enum Flag {
+    CapturePromotion,
+    QuietPromotion,
     Capture,
     Revive,
     Quiet
