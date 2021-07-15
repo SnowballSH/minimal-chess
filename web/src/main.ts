@@ -105,7 +105,7 @@ async function searchSunfish(time: number, depth?: number) {
 
 function startGame() {
     board = new Board();
-    updateBoardAndStatus()
+    updateBoardAndStatus();
 }
 
 //@ts-ignore
