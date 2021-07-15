@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <link rel="icon" type="image" href="/minimal-chess/assets/SnowballSH.b1eeae3b.ico"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Vite App</title>
+<script type="module" crossorigin src="/minimal-chess/assets/index.b07fd97b.js"></script>
+  <link rel="stylesheet" href="/minimal-chess/assets/index.9679c7e3.css">
+</head>
+<body>
+<div id="app">
+    <div class="main-board">
+        <div id="board">
+        </div>
+        <div id="pool">
+        </div>
+
+        <div id="status">
+            <h3>Game Status:</h3>
+            <p id="status-value">Waiting for new game...</p>
+        </div>
+
+        <div class="panel">
+            <button onclick="startGame()">
+                Start New Game
+            </button>
+
+            <br/>
+            <br/>
+
+            <label>
+                Yellow
+                <select id="yellow-select">
+                    <option value="h">
+                        Human
+                    </option>
+                    <option value="s1">
+                        Moonfish lvl. 1
+                    </option>
+                    <option value="s2">
+                        Moonfish lvl. 2
+                    </option>
+                    <option value="s3">
+                        Moonfish lvl. 3
+                    </option>
+                    <option value="b">
+                        Basic
+                    </option>
+                </select>
+                <br/>
+                <br/>
+                Blue
+                <select id="blue-select">
+                    <option value="h">
+                        Human
+                    </option>
+                    <option value="s1">
+                        Moonfish lvl. 1
+                    </option>
+                    <option value="s2">
+                        Moonfish lvl. 2
+                    </option>
+                    <option value="s3">
+                        Moonfish lvl. 3
+                    </option>
+                    <option value="b">
+                        Basic
+                    </option>
+                </select>
+            </label>
+        </div>
+    </div>
+
+    <br/>
+</div>
+
+</body>
+</html>
