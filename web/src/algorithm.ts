@@ -1,26 +1,35 @@
-import {Board, Flag, Move, PieceType, Status} from "./board";
+import {Board, Color, Flag, Move, PieceType, Status} from "./board";
 
-export enum TTFLag {
+enum TTFLag {
     Exact,
     Upper,
     Lower,
 }
 
-type TT = Map<number, {
+type TTBasic = Map<number, {
     depth: number,
     flag: TTFLag,
     value: number,
 }>;
 
+const END = 66666;
+const TT_SIZE = 2_000_000;
+
+const QUIESCENCE_SEARCH_LIMIT = 95;
+const EVAL_ROUGHNESS = 8;
+const STOP_SEARCH = END * Math.PI;
+
 export class BasicSearcher {
-    tt: TT = new Map();
+    tt: TTBasic = new Map();
     depth: number = 0;
+    nodes: number = 0;
     seldepth: number = 0;
 
     negamax(board: Board, depth: number, alpha: number, beta: number, ply: number): number {
         let alphaO = alpha;
 
         this.seldepth = Math.max(this.seldepth, ply);
+        this.nodes++;
 
         let entry = this.tt.get(board.hash);
         if (entry !== undefined && entry.depth >= depth) {
@@ -46,10 +55,19 @@ export class BasicSearcher {
         let value = -Infinity;
         for (const m of moves) {
             board.makeMove(m);
-            value = Math.max(value, -this.negamax(board, depth - 1, -beta, -alpha, ply + 1));
+            let k = this.negamax(board, depth - 1, -beta, -alpha, ply + 1);
             board.undoMove();
+            value = Math.max(value, -k);
             alpha = Math.max(alpha, value);
             if (alpha > beta) break;
+        }
+
+        if (this.tt.size >= TT_SIZE) {
+            this.tt.clear();
+        }
+
+        if (this.tt.size >= TT_SIZE) {
+            this.tt.clear();
         }
 
         this.tt.set(board.hash, {
@@ -63,6 +81,7 @@ export class BasicSearcher {
 
     q(board: Board, depth: number, alpha: number, beta: number, ply: number): number {
         let alphaO = alpha;
+        this.nodes++;
 
         this.seldepth = Math.max(this.seldepth, ply);
 
@@ -86,14 +105,15 @@ export class BasicSearcher {
         let moves = Array.from(board.legalMoves()).filter(x => x.flag === Flag.Capture);
 
         if (board.status !== Status.OnGoing || moves.length === 0) {
-            return this.eval(board, ply);
+            return evalBoard(board, ply);
         }
 
         let value = -Infinity;
         for (const m of moves) {
             board.makeMove(m);
-            value = Math.max(value, -this.q(board, depth - 1, -beta, -alpha, ply + 1));
+            let k = this.q(board, depth - 1, -beta, -alpha, ply + 1);
             board.undoMove();
+            value = Math.max(value, -k);
             alpha = Math.max(alpha, value);
             if (alpha > beta) break;
         }
@@ -108,74 +128,253 @@ export class BasicSearcher {
     }
 
     negaRoot(board: Board, depth: number): [Move | null, number] {
+        this.nodes = 0;
         this.seldepth = 0;
-        this.depth = 0;
-        let alpha = -Infinity;
-        let beta = Infinity;
-        let moves = Array.from(board.legalMoves());
+        this.depth = depth;
+        return this.mtdfNegaRoot(board, -Infinity, Infinity, depth);
+    }
+
+    mtdfNegaRoot(board: Board, alpha: number, beta: number, depth: number): [Move | null, number] {
         let value = -Infinity;
         let bestMove: Move | null = null;
+        let moves = Array.from(board.legalMoves());
 
         for (const m of moves) {
             board.makeMove(m);
-            let k = -this.negamax(board, depth - 1, -beta, -alpha, 0);
-            value = Math.max(value, k);
+            let k = this.negamax(board, depth - 1, -beta, -alpha, 0);
+            board.undoMove();
+            value = Math.max(value, -k);
             if (k >= value) {
                 bestMove = m;
             }
-            board.undoMove();
             alpha = Math.max(alpha, value);
             if (alpha > beta) break;
         }
 
-        this.depth = depth;
-
         return [bestMove, value];
     }
+}
 
-    eval(board: Board, ply: number) {
-        let result = 0;
+function evalBoard(board: Board, ply: number) {
+    if (board.status === Status.YellowWin) {
+        return board.colorToMove === Color.Yellow ? END - ply : -END + ply;
+    }
+    if (board.status === Status.BlueWin) {
+        return board.colorToMove === Color.Blue ? END - ply : -END + ply;
+    }
 
-        for (const [, piece] of board.piecesForColor(board.colorToMove)) {
-            switch (piece?.type) {
-                case PieceType.Jiang:
-                    result += 20000 - ply;
-                    break;
-                case PieceType.Zi:
-                    result += 100;
-                    break;
-                case PieceType.Wang:
-                    result += 250;
-                    break;
-                case PieceType.Xiang:
-                    result += 250;
-                    break;
-                case PieceType.Hou:
-                    result += 300;
-                    break;
+    let result = 0;
+
+    for (const [, piece] of board.piecesForColor(board.colorToMove)) {
+        switch (piece?.type) {
+            case PieceType.Jiang:
+                result += 20000;
+                break;
+            case PieceType.Zi:
+                result += 100;
+                break;
+            case PieceType.Wang:
+                result += 250;
+                break;
+            case PieceType.Xiang:
+                result += 250;
+                break;
+            case PieceType.Hou:
+                result += 300;
+                break;
+        }
+    }
+
+    for (const [, piece] of board.piecesForColor(board.colorToMove ^ 1)) {
+        switch (piece?.type) {
+            case PieceType.Jiang:
+                result -= 20000;
+                break;
+            case PieceType.Zi:
+                result -= 100;
+                break;
+            case PieceType.Wang:
+                result -= 250;
+                break;
+            case PieceType.Xiang:
+                result -= 250;
+                break;
+            case PieceType.Hou:
+                result -= 300;
+                break;
+        }
+    }
+
+    return result;
+}
+
+interface SunfishEntry {
+    lower: number,
+    upper: number
+}
+
+interface SunfishTTScore {
+    hash: number,
+    depth: number,
+    isRoot: boolean,
+}
+
+const DEFAULT_ENTRY: SunfishEntry = {
+    lower: -END,
+    upper: END,
+};
+
+export class SunfishSearcher {
+    scoreTable: Map<SunfishTTScore, SunfishEntry> = new Map();
+    moveTable: Map<number, Move> = new Map();
+    public nodes: number = 0;
+    public depth: number = 0;
+    public seldepth: number = 0;
+    startTime: number = new Date().getTime();
+    durationMS: number = 600;
+
+    bound(board: Board, gamma: number, depth: number, ply: number, root: boolean): number {
+        this.nodes++;
+        this.seldepth = Math.max(ply, this.seldepth);
+
+        let entry = this.scoreTable.get({
+            hash: board.hash,
+            depth: Math.max(depth, 0),
+            isRoot: root,
+        });
+
+        if (entry === undefined) entry = DEFAULT_ENTRY;
+
+        if (entry.lower >= gamma && (!root || this.moveTable.has(board.hash))) {
+            return entry.lower;
+        } else if (entry.upper < gamma) {
+            return entry.upper;
+        }
+
+        if (new Date().getTime() - this.startTime > this.durationMS) {
+            return STOP_SEARCH;
+        }
+
+        let best = -END;
+
+        if (depth <= 0) {
+            let score = evalBoard(board, ply);
+            best = Math.max(best, score);
+        }
+
+        if (best <= gamma) {
+            let m = this.moveTable.get(board.hash);
+            if (m !== undefined) {
+                board.makeMove(m);
+                if (depth > 0 || evalBoard(board, ply) >= QUIESCENCE_SEARCH_LIMIT) {
+                    let score = -this.bound(board, 1 - gamma, depth - 1, ply + 1, false);
+                    board.undoMove();
+                    if (score === STOP_SEARCH) {
+                        return STOP_SEARCH;
+                    }
+                    best = Math.max(best, score);
+                } else {
+                    board.undoMove();
+                }
             }
         }
 
-        for (const [, piece] of board.piecesForColor(board.colorToMove ^ 1)) {
-            switch (piece?.type) {
-                case PieceType.Jiang:
-                    result -= 20000 - ply;
+        if (best < gamma) {
+            let moves = Array.from(board.legalMoves()).map(x => {
+                board.makeMove(x);
+                let score = evalBoard(board, ply);
+                board.undoMove();
+                return {
+                    score: -score,
+                    move: x,
+                };
+            }).sort((a, b) => a.score - b.score);
+
+            for (const e of moves) {
+                if (depth > 0 || (-e.score >= QUIESCENCE_SEARCH_LIMIT && evalBoard(board, ply) - e.score > best)) {
+                    board.makeMove(e.move);
+                    let score = -this.bound(board, 1 - gamma, depth - 1, ply + 1, false);
+                    board.undoMove();
+                    if (score === STOP_SEARCH) return STOP_SEARCH;
+                    best = Math.max(best, score);
+                    if (best >= gamma) {
+                        if (this.moveTable.size >= TT_SIZE) this.moveTable.clear();
+                        this.moveTable.set(board.hash, e.move);
+                        break;
+                    }
+                } else {
                     break;
-                case PieceType.Zi:
-                    result -= 100;
-                    break;
-                case PieceType.Wang:
-                    result -= 250;
-                    break;
-                case PieceType.Xiang:
-                    result -= 250;
-                    break;
-                case PieceType.Hou:
-                    result -= 300;
-                    break;
+                }
             }
         }
 
-        return result;
+        if (this.scoreTable.size >= TT_SIZE) this.scoreTable.clear();
+        if (best >= gamma) {
+            this.scoreTable.set({
+                hash: board.hash,
+                depth: depth,
+                isRoot: root,
+            }, {
+                lower: best,
+                upper: entry.upper,
+            });
+        } else if (best < gamma) {
+            this.scoreTable.set({
+                hash: board.hash,
+                depth: depth,
+                isRoot: root,
+            }, {
+                lower: entry.lower,
+                upper: best,
+            });
+        }
+
+        return best;
+    }
+
+    public search(board: Board, durationMS: number, maxDepth?: number) {
+        this.durationMS = durationMS;
+        this.nodes = 0;
+        this.depth = 0;
+        this.seldepth = 0;
+        this.startTime = new Date().getTime();
+
+        let lastMove: Move | null = null;
+
+        for (this.depth = 1; this.depth <= (maxDepth === undefined ? 100 : maxDepth); this.depth++) {
+            let lower = -END;
+            let upper = END;
+            while (lower < upper - EVAL_ROUGHNESS) {
+                let gamma = Math.floor((lower + upper + 1) / 2);
+                let score = this.bound(board, gamma, this.depth, 0, true);
+                if (score === STOP_SEARCH) {
+                    lower = STOP_SEARCH;
+                    break;
+                }
+                if (score >= gamma) {
+                    lower = score;
+                } else {
+                    upper = score;
+                }
+            }
+
+            if (lower === STOP_SEARCH) {
+                break;
+            }
+            let score = this.bound(board, lower, this.depth, 0, true);
+            if (score === STOP_SEARCH) {
+                break;
+            }
+
+            console.log(`DEPTH ${this.depth} SCORE ${score} NODES ${this.nodes} TIME ${new Date().getTime() - this.startTime}`);
+
+            lastMove = this.moveTable.get(board.hash)!;
+
+            if (new Date().getTime() - this.startTime > this.durationMS || score > END - 10) {
+                break;
+            }
+        }
+
+        return lastMove;
     }
 }

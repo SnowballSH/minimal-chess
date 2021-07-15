@@ -92,10 +92,7 @@ export class Board {
                 this.hash ^= this.hashTable[index][piece.type + piece.color * 5];
             }
         }
-        for (const [index, piece] of this.pool
-            .filter(x => x !== undefined)
-            .sort((a, b) => a.color - b.color)
-            .entries()) {
+        for (const [index, piece] of this.pool.entries()) {
             this.hash ^= this.hashTable[index + 12][piece.type + piece.color * 5];
         }
         this.hash ^= this.hashTableOther[this.colorToMove];
@@ -133,9 +130,12 @@ export class Board {
         });
 
         if (m.flag === Flag.Revive) {
-            let p = this.pool[m.from - 12];
-            this.board[m.to] = p;
+            this.board[m.to] = this.pool[m.from - 12];
             delete this.pool[m.from - 12];
+
+            this.pool = this.pool
+                .filter(x => x !== undefined)
+                .sort((a, b) => a.color - b.color);
         } else {
             const p = this.board[m.from];
             this.board[m.from] = null;
@@ -143,7 +143,7 @@ export class Board {
             this.board[m.to] = p;
             if (m.flag === Flag.Capture && t !== null) {
                 // win detection
-                if (t.type === PieceType.Jiang) {
+                if (t.type === PieceType.Jiang && this.status === Status.OnGoing) {
                     this.status = t.color === Color.Yellow ? Status.BlueWin : Status.YellowWin;
                 } else {
                     t.color ^= 1;

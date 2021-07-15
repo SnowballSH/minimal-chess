@@ -1,6 +1,6 @@
 import './style.css';
-import {Board, Color, Move, Piece, PieceType, Status} from "./board";
-import {BasicSearcher} from "./algorithm";
+import {Board, Color, Piece, PieceType, Status} from "./board";
+import {BasicSearcher, SunfishSearcher} from "./algorithm";
 
 let board = new Board();
 let selected: number | null = null;
@@ -47,8 +47,6 @@ function drawPieceOnSquare(square: HTMLDivElement, val: Piece) {
 }
 
 function updateBoard() {
-    // console.log(searcher.negaRoot(board, 4));
-
     for (let index = 0; index < 12; index++) {
         let val = board.board[index];
         let square = document.querySelector<HTMLDivElement>(`#square${index}`)!;
@@ -91,85 +89,145 @@ function showLegalMoves(i: number) {
     }
 }
 
-let historyMoves: Move[] = [];
+let gameLocked = true;
 
-// @ts-ignore
-window.nextMove = function () {
-    const k = historyMoves.shift();
-    if (k === undefined) return;
-    board.makeMove(k);
-    clearLegalMoves();
-    updateBoard();
-};
+let searcherBasic = new BasicSearcher();
+let searcherSunfishYellow = new SunfishSearcher();
+let searcherSunfishBlue = new SunfishSearcher();
 
-// @ts-ignore
-window.lastMove = function () {
-    if (board.history.length === 0) return;
-    board.undoMove();
-    clearLegalMoves();
-    updateBoard();
-};
-
-let searcher = new BasicSearcher();
-
-function search() {
-    return searcher.negaRoot(board, 6);
+async function searchBasic() {
+    return searcherBasic.negaRoot(board, 6);
 }
 
-// @ts-ignore
-window.playBestMove = function () {
-    let res = search();
-    console.log(res);
-    console.log(searcher.depth, searcher.seldepth);
-    board.makeMove(res[0]!);
-    historyMoves.push(res[0]!);
+async function searchSunfish(time: number, depth?: number) {
+    return (board.colorToMove === Color.Yellow ? searcherSunfishYellow : searcherSunfishBlue).search(board, time, depth);
+}
+
+function startGame() {
+    board = new Board();
     clearLegalMoves();
     updateBoard();
-};
+    tryNextMove();
+}
+
+//@ts-ignore
+window.startGame = startGame;
+
+const YellowSelect = document.querySelector<HTMLSelectElement>("#yellow-select")!;
+const BlueSelect = document.querySelector<HTMLSelectElement>("#blue-select")!;
+
+const GameStatus = document.querySelector<Element>("#status-value")!;
+
+function updateBoardAndStatus() {
+    clearLegalMoves();
+    updateBoard();
+    gameLocked = false;
+
+    if (board.status === Status.YellowWin) {
+        alert("Yellow wins!");
+        GameStatus.innerHTML = "Yellow wins";
+        gameLocked = true;
+        return;
+    } else if (board.status === Status.BlueWin) {
+        alert("Blue wins!");
+        GameStatus.innerHTML = "Blue wins";
+        gameLocked = true;
+        return;
+    }
+
+    tryNextMove();
+}
+
+function tryNextMove() {
+    GameStatus.innerHTML = board.colorToMove === Color.Yellow ? "Yellow to Move" : "Blue to Move";
+
+    switch ((board.colorToMove === Color.Yellow ? YellowSelect : BlueSelect).value) {
+        case "s1":
+            gameLocked = true;
+
+            setTimeout(() => {
+                searchSunfish(100).then(m => {
+                    board.makeMove(m!);
+                    updateBoardAndStatus();
+                });
+            }, 600);
+
+            break;
+        case "s2":
+            gameLocked = true;
+
+            setTimeout(() => {
+                searchSunfish(600).then(m => {
+                    board.makeMove(m!);
+                    updateBoardAndStatus();
+                });
+            }, 600);
+
+            break;
+        case "s3":
+            gameLocked = true;
+
+            setTimeout(() => {
+                searchSunfish(10000, 9).then(m => {
+                    board.makeMove(m!);
+                    updateBoardAndStatus();
+                });
+            }, 600);
+
+            break;
+        case "b":
+            gameLocked = true;
+
+            setTimeout(() => {
+                searchBasic().then(m => {
+                    board.makeMove(m[0]!);
+                    updateBoardAndStatus();
+                });
+            }, 600);
+
+            break;
+        case "h":
+            gameLocked = false;
+            break;
+    }
+}
 
 function init() {
     document.onclick = e => {
-        const k = (e.target as Element).id;
-        if (k.startsWith("square")) {
-            const idx = parseInt(k.split("square")[1]);
+        if (!gameLocked) {
+            const k = (e.target as Element).id;
+            if (k.startsWith("square")) {
+                const idx = parseInt(k.split("square")[1]);
 
-            for (const m of board.legalMoves()) {
-                if (m.from === selected && m.to === idx) {
-                    board.makeMove(m);
-                    historyMoves.push(m);
-                    clearLegalMoves();
-                    updateBoard();
-
-                    if (board.status === Status.YellowWin) {
-                        alert("Yellow wins!");
-                    } else if (board.status === Status.BlueWin) {
-                        alert("Blue wins!");
+                for (const m of board.legalMoves()) {
+                    if (m.from === selected && m.to === idx) {
+                        board.makeMove(m);
+                        updateBoardAndStatus();
+                        return;
                     }
-
-                    return;
                 }
-            }
 
-            if (selected === idx) {
+                if (selected === idx) {
+                    clearLegalMoves();
+                    selected = null;
+                } else {
+                    showLegalMoves(idx);
+                    selected = idx;
+                }
+            } else if (k.startsWith("poolsq")) {
+                const idx = parseInt(k.split("poolsq")[1]);
+
+                if (selected === 12 + idx) {
+                    clearLegalMoves();
+                    selected = null;
+                } else {
+                    showLegalMoves(12 + idx);
+                    selected = 12 + idx;
+                }
+            } else {
                 clearLegalMoves();
                 selected = null;
-            } else {
-                showLegalMoves(idx);
-                selected = idx;
             }
-        } else if (k.startsWith("poolsq")) {
-            const idx = parseInt(k.split("poolsq")[1]);
-
-            if (selected === 12 + idx) {
-                clearLegalMoves();
-                selected = null;
-            } else {
-                showLegalMoves(12 + idx);
-                selected = 12 + idx;
-            }
-        } else {
-            clearLegalMoves();
-            selected = null;
         }
     };
 

@@ -75,11 +75,30 @@
     --side: calc(1em + 5vw);
 
     display: grid;
-    grid-template-columns: repeat(4, var(--side));
+    grid-template-columns: repeat(3, var(--side));
     grid-gap: calc(0.5em + 4vw);
     margin: calc(1em + 4vw);
 }
 
 .legal-move {
     background-color: red !important;
+}
+
+.panel {
+    padding: 1em;
+    border: 2px solid pink;
+    width: calc(8em + 25vw);
+    margin: 1em;
+}
+
+.main-board {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+#status {
+    padding: 1em;
+    border: 2px solid mediumaquamarine;
+    width: calc(8em + 25vw);
+    margin: 1em;
 }

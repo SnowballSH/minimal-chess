@@ -8,21 +8,69 @@
 </head>
 <body>
 <div id="app">
-    <div id="board">
+    <div class="main-board">
+        <div id="board">
+        </div>
+        <div id="pool">
+        </div>
+
+        <div id="status">
+            <h3>Game Status:</h3>
+            <p id="status-value">Waiting for new game...</p>
+        </div>
+
+        <div class="panel">
+            <button onclick="startGame()">
+                Start New Game
+            </button>
+
+            <br/>
+            <br/>
+
+            <label>
+                Yellow
+                <select id="yellow-select">
+                    <option value="h">
+                        Human
+                    </option>
+                    <option value="s1">
+                        Moonfish lvl. 1
+                    </option>
+                    <option value="s2">
+                        Moonfish lvl. 2
+                    </option>
+                    <option value="s3">
+                        Moonfish lvl. 3
+                    </option>
+                    <option value="b">
+                        Basic
+                    </option>
+                </select>
+                <br/>
+                <br/>
+                Blue
+                <select id="blue-select">
+                    <option value="h">
+                        Human
+                    </option>
+                    <option value="s1">
+                        Moonfish lvl. 1
+                    </option>
+                    <option value="s2">
+                        Moonfish lvl. 2
+                    </option>
+                    <option value="s3">
+                        Moonfish lvl. 3
+                    </option>
+                    <option value="b">
+                        Basic
+                    </option>
+                </select>
+            </label>
+        </div>
     </div>
-    <div id="pool">
-    </div>
-    <div class="controls">
-        <button onclick="lastMove()">
-            &lt;-
-        </button>
-        <button onclick="nextMove()">
-            -&gt;
-        </button>
-        <button onclick="playBestMove()">
-            Play Best Move
-        </button>
-    </div>
+
+    <br/>
 </div>
 <script type="module" src="/src/main.ts"></script>
 </body>
