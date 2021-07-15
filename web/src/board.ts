@@ -56,12 +56,12 @@ export class Board {
         for (const ch of onBoard) {
             let val: number = parseInt(ch);
             if (isNaN(val)) board.push(null);
-            else board.push(new Piece(val % 5, val / 5));
+            else board.push(new Piece(val % 5, Math.floor(val / 5)));
         }
         let pool = [];
         for (const ch of inPool) {
             let val: number = parseInt(ch);
-            pool.push(new Piece(val % 5, val % 5));
+            pool.push(new Piece(val % 5, Math.floor(val / 5)));
         }
         let bd = new Board();
         bd.board = board;

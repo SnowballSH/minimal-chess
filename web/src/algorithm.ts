@@ -165,42 +165,42 @@ function evalBoard(board: Board, ply: number) {
 
     let result = 0;
 
-    for (const [, piece] of board.piecesForColor(board.colorToMove)) {
+    for (const piece of board.board) {
+        if (piece === null) continue;
+
+        const modifier = board.colorToMove === piece?.color ? 1 : -1;
+
         switch (piece?.type) {
             case PieceType.Jiang:
-                result += 20000;
+                result += 20000 * modifier;
                 break;
             case PieceType.Zi:
-                result += 100;
+                result += 100 * modifier;
                 break;
             case PieceType.Wang:
-                result += 250;
+                result += 250 * modifier;
                 break;
             case PieceType.Xiang:
-                result += 250;
+                result += 250 * modifier;
                 break;
             case PieceType.Hou:
-                result += 300;
+                result += 300 * modifier;
                 break;
         }
     }
 
-    for (const [, piece] of board.piecesForColor(board.colorToMove ^ 1)) {
+    for (const piece of board.pool) {
+        const modifier = board.colorToMove === piece?.color ? 1 : -1;
+
         switch (piece?.type) {
-            case PieceType.Jiang:
-                result -= 20000;
-                break;
             case PieceType.Zi:
-                result -= 100;
+                result += 40 * modifier;
                 break;
             case PieceType.Wang:
-                result -= 250;
+                result += 80 * modifier;
                 break;
             case PieceType.Xiang:
-                result -= 250;
-                break;
-            case PieceType.Hou:
-                result -= 300;
+                result += 80 * modifier;
                 break;
         }
     }
