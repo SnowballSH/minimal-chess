@@ -1,0 +1,120 @@
+@import url('https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&display=swap');
+
+$animation: all 0.3s linear;
+
+#board {
+    --factor: 1.2;
+    --side: calc((1em + 7vw) / var(--factor));
+
+    display: grid;
+    grid-template-columns: repeat(4, var(--side));
+    grid-gap: calc((0.5em + 4vw) / var(--factor));
+    margin: calc((0.5em + 2vw) / var(--factor));
+
+    &> .square > h3 {
+        font-size: calc((0.5em + 4vw) / var(--factor));
+        top: calc(50% - (0.5em + 4.5vw) / var(--factor) / 2);
+        left: calc(50% - (0.5em + 4.5vw) / var(--factor) / 2 / 1.32);
+    }
+}
+
+.square {
+    height: var(--side);
+
+    position: relative;
+    display: inline-block;
+    background-color: #fcfffc;
+    border-radius: 20%;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    -webkit-transition: $animation;
+    -moz-transition: $animation;
+    transition: $animation;
+
+    &:after {
+        content: "";
+        border-radius: 20%;
+        position: absolute;
+        z-index: -1;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        opacity: 0;
+        -webkit-transition: $animation;
+        -moz-transition: $animation;
+        transition: $animation;
+    }
+
+    svg {
+        border-radius: 5px;
+        overflow: inherit;
+        position: absolute;
+        pointer-events: none;
+    }
+
+    h3 {
+        position: absolute;
+        margin: 0;
+        pointer-events: none;
+        user-select: none;
+    }
+
+    &:hover {
+        cursor: pointer;
+        -webkit-transform: scale(1.1, 1.1);
+        transform: scale(1.1, 1.1);
+
+        &:after {
+            opacity: 1;
+        }
+    }
+}
+
+#pool {
+    position: relative;
+
+    --side: calc(1em + 5vw);
+
+    display: grid;
+    grid-template-columns: repeat(3, var(--side));
+    grid-gap: calc(0.5em + 4vw);
+    margin: calc(1em + 4vw);
+
+    &> .square > h3 {
+        font-size: calc(0.5em + 3vw);
+        top: calc(50% - (0.5em + 3vw) / 2);
+        left: calc(50% - (0.5em + 3vw) / 2 / 1.32);
+    }
+}
+
+.legal-move {
+    background-color: red !important;
+}
+
+#panel {
+    padding: 1em;
+    border: 2px solid pink;
+    width: calc(4em + 25vw);
+    margin: 1em;
+
+    font-family: "Noto Sans", sans-serif;
+
+    &> select {
+        margin: 10px;
+    }
+}
+
+.main-board {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+#status {
+    padding: 1em;
+    border: 2px solid mediumaquamarine;
+    width: calc(4em + 25vw);
+    margin: 1em;
+
+    font-family: "Noto Sans", sans-serif;
+}

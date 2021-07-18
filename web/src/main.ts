@@ -1,4 +1,4 @@
-import './style.css';
+import './style.scss';
 import {Board, Color, Piece, PieceType, Status} from "./board";
 import {SunfishSearcher} from "./algorithm";
 
@@ -8,42 +8,52 @@ let selected: number | null = null;
 function drawPieceOnSquare(square: HTMLDivElement, val: Piece) {
     switch (val.color) {
         case Color.Yellow:
-            square.style.backgroundColor = "#ffff41";
+            square.style.backgroundColor = "#ffe641";
             break;
         case Color.Blue:
-            square.style.backgroundColor = "#3939f5";
+            square.style.backgroundColor = "#3952f5";
             break;
     }
 
     switch (val.type) {
         case PieceType.Xiang:
-            square.innerHTML = `<svg viewBox="0 0 32 32" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+            square.innerHTML = `<div><svg viewBox="0 0 32 32" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
 <path d="M0 0H8L0 8M24 0H32V8M32 24V32H24M0 32H8L0 24">
-</path></svg>`;
+</path></svg><svg viewBox="0 0 32 32" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+<text x="4" y="24.5" style="font-size: 23px; font-weight: 500; font-family: 'Ma Shan Zheng', cursive;">相</text></svg></div>
+</div>`;
             break;
         case PieceType.Wang:
-            square.innerHTML = `<svg viewBox="0 0 32 32" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+            square.innerHTML = `<div><svg viewBox="0 0 32 32" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
 <path d="M0 22-6 16 0 10M10 32 16 38 22 32M32 22 38 16 32 10M22 0 16-6 10 0">
-</path></svg>`;
+</path></svg><svg viewBox="0 0 32 32" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+<text x="4.5" y="24.5" style="font-size: 23px; font-weight: 500; font-family: 'Ma Shan Zheng', cursive;">王</text></svg></div>
+</div>`;
             break;
         case PieceType.Jiang:
-            square.innerHTML = `<svg viewBox="0 0 32 32" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+            square.innerHTML = `<div><svg viewBox="0 0 32 32" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
 <path d="M0 0H8L0 8M24 0H32V8M32 24V32H24M0 32H8L0 24M0 22-6 16 0 10M10 32 16 38 22 32M32 22 38 16 32 10M22 0 16-6 10 0">
-</path></svg>`;
+</path></svg><svg viewBox="0 0 32 32" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+<text x="4.5" y="24.5" style="font-size: 23px; font-weight: 500; font-family: 'Ma Shan Zheng', cursive;">将</text></svg></div>
+</div>`;
             break;
         case PieceType.Zi:
-            square.innerHTML = `<svg viewBox="0 0 32 32" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+            square.innerHTML = `<div><svg viewBox="0 0 32 32" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
 <path d="${val?.color === Color.Yellow ? "M32 22 38 16 32 10" : "M0 22-6 16 0 10"}">
-</path></svg>`;
+</path></svg><svg viewBox="0 0 32 32" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+<text x="4.5" y="24.5" style="font-size: 23px; font-weight: 500; font-family: 'Ma Shan Zheng', cursive;">子</text></svg></div>
+</div>`;
             break;
         case PieceType.Hou:
-            square.innerHTML = `<svg viewBox="0 0 32 32" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+            square.innerHTML = `<div><svg viewBox="0 0 32 32" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
 <path d="${val?.color === Color.Yellow ? "M24 0H32V8M32 24V32H24M0 22-6 16 0 10M10 32 16 38 22 32M32 22 38 16 32 10M22 0 16-6 10 0" : "M0 0H8L0 8M0 32H8L0 24M0 22-6 16 0 10M10 32 16 38 22 32M32 22 38 16 32 10M22 0 16-6 10 0"}">
-</path></svg>`;
+</path></svg><svg viewBox="0 0 32 32" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+<text x="4.5" y="24.5" style="font-size: 23px; font-weight: 500; font-family: 'Ma Shan Zheng', cursive;">侯</text></svg></div>
+</div>`;
             break;
     }
 
-    square.innerHTML += `<h3>${val?.pieceToString() || ""}</h3>`;
+    // square.innerHTML += `<h3>${val?.pieceToString() || ""}</h3>`;
 }
 
 function updateBoard() {
@@ -149,7 +159,7 @@ function tryNextMove() {
                     board.makeMove(m!);
                     updateBoardAndStatus();
                 });
-            }, 200);
+            }, 300);
 
             break;
         case "s2":
@@ -160,7 +170,7 @@ function tryNextMove() {
                     board.makeMove(m!);
                     updateBoardAndStatus();
                 });
-            }, 200);
+            }, 300);
 
             break;
         case "s3":
@@ -171,7 +181,7 @@ function tryNextMove() {
                     board.makeMove(m!);
                     updateBoardAndStatus();
                 });
-            }, 200);
+            }, 300);
 
             break;
         case "h":
