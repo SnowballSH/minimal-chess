@@ -1,6 +1,6 @@
 import './style.css';
 import {Board, Color, Piece, PieceType, Status} from "./board";
-import {BasicSearcher, SunfishSearcher} from "./algorithm";
+import {SunfishSearcher} from "./algorithm";
 
 let board = new Board();
 let selected: number | null = null;
@@ -91,13 +91,8 @@ function showLegalMoves(i: number) {
 
 let gameLocked = true;
 
-let searcherBasic = new BasicSearcher();
 let searcherSunfishYellow = new SunfishSearcher();
 let searcherSunfishBlue = new SunfishSearcher();
-
-async function searchBasic() {
-    return searcherBasic.negaRoot(board, 6);
-}
 
 async function searchSunfish(time: number, depth?: number) {
     return (board.colorToMove === Color.Yellow ? searcherSunfishYellow : searcherSunfishBlue).search(board, time, depth);
@@ -132,6 +127,12 @@ function updateBoardAndStatus() {
         gameLocked = true;
         return;
     }
+    if (board.status === Status.Draw) {
+        alert("Draw (by 10 non-capture moves)!");
+        GameStatus.innerHTML = "Draw (by 10 non-capture moves)";
+        gameLocked = true;
+        return;
+    }
 
     tryNextMove();
 }
@@ -148,7 +149,7 @@ function tryNextMove() {
                     board.makeMove(m!);
                     updateBoardAndStatus();
                 });
-            }, 600);
+            }, 200);
 
             break;
         case "s2":
@@ -159,29 +160,18 @@ function tryNextMove() {
                     board.makeMove(m!);
                     updateBoardAndStatus();
                 });
-            }, 600);
+            }, 200);
 
             break;
         case "s3":
             gameLocked = true;
 
             setTimeout(() => {
-                searchSunfish(10000, 9).then(m => {
+                searchSunfish(5000, 10).then(m => {
                     board.makeMove(m!);
                     updateBoardAndStatus();
                 });
-            }, 600);
-
-            break;
-        case "b":
-            gameLocked = true;
-
-            setTimeout(() => {
-                searchBasic().then(m => {
-                    board.makeMove(m[0]!);
-                    updateBoardAndStatus();
-                });
-            }, 600);
+            }, 200);
 
             break;
         case "h":

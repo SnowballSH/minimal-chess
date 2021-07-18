@@ -1,5 +1,6 @@
 #board {
     --side: calc(1em + 7vw);
+    --animation: all 0.5s cubic-bezier(0.165, 0.84, 0.44, 1);
 
     display: grid;
     grid-template-columns: repeat(4, var(--side));
@@ -15,8 +16,9 @@
     background-color: #fcfffc;
     border-radius: 20%;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-    -webkit-transition: all 1s cubic-bezier(0.165, 0.84, 0.44, 1);
-    transition: all 1s cubic-bezier(0.165, 0.84, 0.44, 1);
+    -webkit-transition: var(--animation);
+    -moz-transition: var(--animation);
+    transition: var(--animation);
 }
 
 .square::after {
@@ -30,8 +32,9 @@
     height: 100%;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
     opacity: 0;
-    -webkit-transition: all 1s cubic-bezier(0.165, 0.84, 0.44, 1);
-    transition: all 1s cubic-bezier(0.165, 0.84, 0.44, 1);
+    -webkit-transition: var(--animation);
+    -moz-transition: var(--animation);
+    transition: var(--animation);
 }
 
 .square > svg {
@@ -45,6 +48,7 @@
     position: absolute;
     margin: 0;
     pointer-events: none;
+    user-select: none;
 }
 
 .square:hover {

@@ -17,12 +17,14 @@ export class Board {
         board: (Piece | null)[],
         status: Status,
         pool: Piece[],
+        msc: number,
     }[] = [];
     public status: Status = Status.OnGoing;
     public pool: Piece[] = [];
     hashTable: Uint32Array[] = [];
     hashTableOther: Uint32Array;
     public hash: number = 0;
+    public movesSinceLastCapture: number = 0;
 
     constructor() {
         this.board = [
@@ -49,9 +51,9 @@ export class Board {
         this.calculateHash();
     }
 
-    // Syntax: 12 digits of pieces on board (0-9 or *) + " " + all valid pool items (0-9) + " " + color to move + status
+    // Syntax: 12 digits of pieces on board (0-9 or *) + " " + all valid pool items (0-9) + " " + color to move + status + " " + moves since capture
     static fromFEN(fen: string) {
-        const [onBoard, inPool, others] = fen.split(" ");
+        const [onBoard, inPool, others, msc] = fen.split(" ");
         let board = [];
         for (const ch of onBoard) {
             let val: number = parseInt(ch);
@@ -68,6 +70,15 @@ export class Board {
         bd.pool = pool;
         bd.colorToMove = parseInt(others[0]);
         bd.status = parseInt(others[1]);
+        bd.movesSinceLastCapture = parseInt(msc);
+
+        for (let i = 0; i < 22; i++) {
+            bd.hashTable[i] = crypto.getRandomValues(new Uint32Array(10));
+        }
+
+        bd.hashTableOther = crypto.getRandomValues(new Uint32Array(2));
+
+        bd.calculateHash();
 
         return bd;
     }
@@ -81,6 +92,8 @@ export class Board {
         s += " ";
         s += this.colorToMove;
         s += this.status;
+        s += " ";
+        s += this.movesSinceLastCapture;
 
         return s;
     }
@@ -127,6 +140,7 @@ export class Board {
             board: [...this.board],
             status: this.status,
             pool: [...this.pool],
+            msc: this.movesSinceLastCapture,
         });
 
         if (m.flag === Flag.Revive) {
@@ -174,6 +188,16 @@ export class Board {
 
         // TODO replace with updating method
         this.calculateHash();
+
+        if (m.flag === Flag.Capture) {
+            this.movesSinceLastCapture = 0;
+        } else {
+            this.movesSinceLastCapture++;
+        }
+
+        if (this.status === Status.OnGoing && this.movesSinceLastCapture >= 10) {
+            this.status = Status.Draw;
+        }
     }
 
     undoMove() {
@@ -182,6 +206,7 @@ export class Board {
         this.status = h.status;
         this.pool = h.pool;
         this.colorToMove ^= 1;
+        this.movesSinceLastCapture = h.msc;
         this.calculateHash();
     }
 
@@ -281,6 +306,7 @@ export enum Status {
     OnGoing,
     YellowWin,
     BlueWin,
+    Draw,
 }
 
 export class Move {

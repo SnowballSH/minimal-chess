@@ -1,16 +1,4 @@
-import {Board, Color, Flag, Move, PieceType, Status} from "./board";
-
-enum TTFLag {
-    Exact,
-    Upper,
-    Lower,
-}
-
-type TTBasic = Map<number, {
-    depth: number,
-    flag: TTFLag,
-    value: number,
-}>;
+import {Board, Color, Move, PieceType, Status} from "./board";
 
 const END = 66666;
 const TT_SIZE = 2_000_000;
@@ -19,148 +7,15 @@ const QUIESCENCE_SEARCH_LIMIT = 95;
 const EVAL_ROUGHNESS = 8;
 const STOP_SEARCH = END * Math.PI;
 
-export class BasicSearcher {
-    tt: TTBasic = new Map();
-    depth: number = 0;
-    nodes: number = 0;
-    seldepth: number = 0;
-
-    negamax(board: Board, depth: number, alpha: number, beta: number, ply: number): number {
-        let alphaO = alpha;
-
-        this.seldepth = Math.max(this.seldepth, ply);
-        this.nodes++;
-
-        let entry = this.tt.get(board.hash);
-        if (entry !== undefined && entry.depth >= depth) {
-            switch (entry.flag) {
-                case TTFLag.Exact:
-                    return entry.value;
-                case TTFLag.Upper:
-                    beta = Math.min(beta, entry.value);
-                    break;
-                case TTFLag.Lower:
-                    alpha = Math.max(alpha, entry.value);
-                    break;
-            }
-
-            if (alpha > beta)
-                return entry.value;
-        }
-
-        if (depth === 0 || board.status !== Status.OnGoing)
-            return this.q(board, depth, alpha, beta, ply);
-
-        let moves = Array.from(board.legalMoves());
-        let value = -Infinity;
-        for (const m of moves) {
-            board.makeMove(m);
-            let k = this.negamax(board, depth - 1, -beta, -alpha, ply + 1);
-            board.undoMove();
-            value = Math.max(value, -k);
-            alpha = Math.max(alpha, value);
-            if (alpha > beta) break;
-        }
-
-        if (this.tt.size >= TT_SIZE) {
-            this.tt.clear();
-        }
-
-        if (this.tt.size >= TT_SIZE) {
-            this.tt.clear();
-        }
-
-        this.tt.set(board.hash, {
-            depth: depth,
-            value: value,
-            flag: value <= alphaO ? TTFLag.Upper : value >= beta ? TTFLag.Lower : TTFLag.Exact,
-        });
-
-        return value;
-    }
-
-    q(board: Board, depth: number, alpha: number, beta: number, ply: number): number {
-        let alphaO = alpha;
-        this.nodes++;
-
-        this.seldepth = Math.max(this.seldepth, ply);
-
-        let entry = this.tt.get(board.hash);
-        if (entry !== undefined && entry.depth >= depth) {
-            switch (entry.flag) {
-                case TTFLag.Exact:
-                    return entry.value;
-                case TTFLag.Upper:
-                    beta = Math.min(beta, entry.value);
-                    break;
-                case TTFLag.Lower:
-                    alpha = Math.max(alpha, entry.value);
-                    break;
-            }
-
-            if (alpha > beta)
-                return entry.value;
-        }
-
-        let moves = Array.from(board.legalMoves()).filter(x => x.flag === Flag.Capture);
-
-        if (board.status !== Status.OnGoing || moves.length === 0) {
-            return evalBoard(board, ply);
-        }
-
-        let value = -Infinity;
-        for (const m of moves) {
-            board.makeMove(m);
-            let k = this.q(board, depth - 1, -beta, -alpha, ply + 1);
-            board.undoMove();
-            value = Math.max(value, -k);
-            alpha = Math.max(alpha, value);
-            if (alpha > beta) break;
-        }
-
-        this.tt.set(board.hash, {
-            depth: depth,
-            value: value,
-            flag: value <= alphaO ? TTFLag.Upper : value >= beta ? TTFLag.Lower : TTFLag.Exact,
-        });
-
-        return value;
-    }
-
-    negaRoot(board: Board, depth: number): [Move | null, number] {
-        this.nodes = 0;
-        this.seldepth = 0;
-        this.depth = depth;
-        return this.mtdfNegaRoot(board, -Infinity, Infinity, depth);
-    }
-
-    mtdfNegaRoot(board: Board, alpha: number, beta: number, depth: number): [Move | null, number] {
-        let value = -Infinity;
-        let bestMove: Move | null = null;
-        let moves = Array.from(board.legalMoves());
-
-        for (const m of moves) {
-            board.makeMove(m);
-            let k = this.negamax(board, depth - 1, -beta, -alpha, 0);
-            board.undoMove();
-            value = Math.max(value, -k);
-            if (k >= value) {
-                bestMove = m;
-            }
-            alpha = Math.max(alpha, value);
-            if (alpha > beta) break;
-        }
-
-        return [bestMove, value];
-    }
-}
-
 function evalBoard(board: Board, ply: number) {
     if (board.status === Status.YellowWin) {
         return board.colorToMove === Color.Yellow ? END - ply : -END + ply;
     }
     if (board.status === Status.BlueWin) {
         return board.colorToMove === Color.Blue ? END - ply : -END + ply;
+    }
+    if (board.status === Status.Draw) {
+        return 0;
     }
 
     let result = 0;
