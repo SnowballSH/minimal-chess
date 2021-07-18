@@ -5,8 +5,8 @@
     <link rel="icon" type="image" href="/minimal-chess/assets/SnowballSH.b1eeae3b.ico"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Minimal Chess</title>
-<script type="module" crossorigin src="/minimal-chess/assets/index.4a24533a.js"></script>
-  <link rel="stylesheet" href="/minimal-chess/assets/index.d582baa0.css">
+<script type="module" crossorigin src="/minimal-chess/assets/index.7b2931a4.js"></script>
+  <link rel="stylesheet" href="/minimal-chess/assets/index.e628fba2.css">
 </head>
 <body>
 <div id="app">
@@ -21,7 +21,7 @@
             <p id="status-value">Waiting for new game...</p>
         </div>
 
-        <div class="panel">
+        <div id="panel">
             <button onclick="startGame()">
                 Start New Game
             </button>
@@ -31,35 +31,41 @@
 
             <label>
                 Yellow
+                <br/>
                 <select id="yellow-select">
                     <option value="h">
                         Human
                     </option>
                     <option value="s1">
-                        Moonfish lvl. 1
+                        AI lvl. 2
                     </option>
                     <option value="s2">
-                        Moonfish lvl. 2
+                        AI lvl. 3
                     </option>
                     <option value="s3">
-                        Moonfish lvl. 3
+                        AI lvl. 5
                     </option>
                 </select>
-                <br/>
-                <br/>
+            </label>
+
+            <br/>
+            <br/>
+
+            <label>
                 Blue
+                <br/>
                 <select id="blue-select">
                     <option value="h">
                         Human
                     </option>
                     <option value="s1">
-                        Moonfish lvl. 1
+                        AI lvl. 2
                     </option>
                     <option value="s2">
-                        Moonfish lvl. 2
+                        AI lvl. 3
                     </option>
                     <option value="s3">
-                        Moonfish lvl. 3
+                        AI lvl. 5
                     </option>
                 </select>
             </label>

@@ -3,118 +3,186 @@
 $animation: all 0.3s linear;
 
 #board {
-    --factor: 1.2;
-    --side: calc((1em + 7vw) / var(--factor));
+  --factor: 1.2;
+  --side: calc((1em + 7vw) / var(--factor));
 
-    display: grid;
-    grid-template-columns: repeat(4, var(--side));
-    grid-gap: calc((0.5em + 4vw) / var(--factor));
-    margin: calc((0.5em + 2vw) / var(--factor));
+  display: grid;
+  grid-template-columns: repeat(4, var(--side));
+  grid-gap: calc((0.5em + 4vw) / var(--factor));
+  padding: calc((0.5em + 4vw) / var(--factor));
+  margin: 1em;
 
-    &> .square > h3 {
-        font-size: calc((0.5em + 4vw) / var(--factor));
-        top: calc(50% - (0.5em + 4.5vw) / var(--factor) / 2);
-        left: calc(50% - (0.5em + 4.5vw) / var(--factor) / 2 / 1.32);
-    }
+  background: #fff6e8;
+  border-radius: 10px;
+
+  // transition: transform 0.3s linear;
+
+  & > .square > h3 {
+    font-size: calc((0.5em + 4vw) / var(--factor));
+    top: calc(50% - (0.5em + 4.5vw) / var(--factor) / 2);
+    left: calc(50% - (0.5em + 4.5vw) / var(--factor) / 2 / 1.32);
+  }
 }
 
 .square {
-    height: var(--side);
+  height: var(--side);
 
-    position: relative;
-    display: inline-block;
-    background-color: #fcfffc;
+  position: relative;
+  display: inline-block;
+  background-color: #fcfffc;
+  border-radius: 20%;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  -webkit-transition: $animation;
+  -moz-transition: $animation;
+  transition: $animation;
+
+  &:after {
+    content: "";
     border-radius: 20%;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    position: absolute;
+    z-index: -1;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    opacity: 0;
     -webkit-transition: $animation;
     -moz-transition: $animation;
     transition: $animation;
+  }
+
+  svg {
+    border-radius: 5px;
+    overflow: inherit;
+    position: absolute;
+    pointer-events: none;
+  }
+
+  h3 {
+    position: absolute;
+    margin: 0;
+    pointer-events: none;
+    user-select: none;
+  }
+
+  &:hover {
+    cursor: pointer;
+    -webkit-transform: scale(1.1, 1.1);
+    transform: scale(1.1, 1.1);
 
     &:after {
-        content: "";
-        border-radius: 20%;
-        position: absolute;
-        z-index: -1;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-        opacity: 0;
-        -webkit-transition: $animation;
-        -moz-transition: $animation;
-        transition: $animation;
+      opacity: 1;
     }
-
-    svg {
-        border-radius: 5px;
-        overflow: inherit;
-        position: absolute;
-        pointer-events: none;
-    }
-
-    h3 {
-        position: absolute;
-        margin: 0;
-        pointer-events: none;
-        user-select: none;
-    }
-
-    &:hover {
-        cursor: pointer;
-        -webkit-transform: scale(1.1, 1.1);
-        transform: scale(1.1, 1.1);
-
-        &:after {
-            opacity: 1;
-        }
-    }
+  }
 }
 
 #pool {
-    position: relative;
+  position: relative;
 
-    --side: calc(1em + 5vw);
+  --side: calc(1em + 5vw);
 
-    display: grid;
-    grid-template-columns: repeat(3, var(--side));
-    grid-gap: calc(0.5em + 4vw);
-    margin: calc(1em + 4vw);
+  display: grid;
+  grid-template-columns: repeat(3, var(--side));
+  grid-gap: calc(0.5em + 4vw);
+  margin: calc(1em + 4vw);
 
-    &> .square > h3 {
-        font-size: calc(0.5em + 3vw);
-        top: calc(50% - (0.5em + 3vw) / 2);
-        left: calc(50% - (0.5em + 3vw) / 2 / 1.32);
-    }
+  & > .square > h3 {
+    font-size: calc(0.5em + 3vw);
+    top: calc(50% - (0.5em + 3vw) / 2);
+    left: calc(50% - (0.5em + 3vw) / 2 / 1.32);
+  }
 }
 
 .legal-move {
-    background-color: red !important;
+  background-color: red !important;
 }
 
 #panel {
-    padding: 1em;
-    border: 2px solid pink;
-    width: calc(4em + 25vw);
-    margin: 1em;
+  padding: 1.5em;
+  border: 2px solid pink;
+  width: calc(4em + 25vw);
+  margin: 1em;
 
-    font-family: "Noto Sans", sans-serif;
+  border-radius: 5px;
 
-    &> select {
-        margin: 10px;
+  font-family: "Noto Sans", sans-serif;
+
+  select {
+    margin-top: 5px;
+
+    color: #1A1A1A;
+    font-size: calc(0.5em + 0.8vw);
+    letter-spacing: 0;
+    font-weight: 400;
+    padding: 7px calc(0.5em + 1.5vw);
+    border: 1px solid rgba(0, 0, 0, 0.24);
+    border-radius: 3px;
+    box-shadow: 0 7px 6px 0 #E0E0E0;
+    transform: translate(0px, 0px) scaleX(1) scaleY(1);
+    transition: transform 0.1s linear 0s;
+
+    &#yellow-select {
+      background: #ffe641;
+
+      &:hover {
+        background: #fce557;
+      }
     }
+
+    &#blue-select {
+      background: #6194fa;
+
+      &:hover {
+        background: #6899f8;
+      }
+    }
+
+    &:hover {
+      transform: translate(0px, 1px) scaleX(1) scaleY(1);
+      cursor: pointer;
+    }
+
+    &:focus {
+      outline: none !important;
+    }
+  }
+
+  & > button {
+    color: #1A1A1A;
+    font-size: calc(0.5em + 1vw);
+    letter-spacing: 0;
+    font-weight: 400;
+    padding: 7px calc(0.5em + 2vw);
+    background: #8FDAFF;
+    border: none;
+    border-radius: 3px;
+    box-shadow: 0 7px 6px 0 #E0E0E0;
+    transform: translate(0px, 0px) scaleX(1) scaleY(1);
+    transition: transform 0.1s linear 0s;
+
+    &:hover {
+      background: #8fceff;
+      transform: translate(0px, 2px) scaleX(1) scaleY(1);
+      cursor: pointer;
+    }
+  }
 }
 
 .main-board {
-    display: flex;
-    flex-wrap: wrap;
+  display: flex;
+  flex-wrap: wrap;
+  row-gap: 2em;
+
+  margin: 2em;
 }
 
 #status {
-    padding: 1em;
-    border: 2px solid mediumaquamarine;
-    width: calc(4em + 25vw);
-    margin: 1em;
+  padding: 1.5em;
+  border: 2px solid mediumaquamarine;
+  border-radius: 5px;
+  width: calc(4em + 25vw);
+  margin: 1em;
 
-    font-family: "Noto Sans", sans-serif;
+  font-family: "Noto Sans", sans-serif;
 }
