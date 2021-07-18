@@ -128,8 +128,8 @@ function updateBoardAndStatus() {
         return;
     }
     if (board.status === Status.Draw) {
-        alert("Draw (by 10 non-capture moves)!");
-        GameStatus.innerHTML = "Draw (by 10 non-capture moves)";
+        alert("Draw (by 20 non-capture moves)!");
+        GameStatus.innerHTML = "Draw (by 20 non-capture moves)";
         gameLocked = true;
         return;
     }

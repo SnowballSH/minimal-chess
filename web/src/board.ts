@@ -195,7 +195,7 @@ export class Board {
             this.movesSinceLastCapture++;
         }
 
-        if (this.status === Status.OnGoing && this.movesSinceLastCapture >= 10) {
+        if (this.status === Status.OnGoing && this.movesSinceLastCapture >= 20) {
             this.status = Status.Draw;
         }
     }
