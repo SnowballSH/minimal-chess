@@ -101,7 +101,8 @@ $animation: all 0.3s linear;
 #panel {
   padding: 1.5em;
   border: 2px solid pink;
-  width: calc(4em + 25vw);
+  width: calc(4em + 30vw);
+  text-align: center;
   margin: 1em;
 
   border-radius: 5px;
@@ -181,8 +182,10 @@ $animation: all 0.3s linear;
   padding: 1.5em;
   border: 2px solid mediumaquamarine;
   border-radius: 5px;
-  width: calc(4em + 25vw);
+  width: calc(2em + 20vw);
   margin: 1em;
+
+  text-align: center;
 
   font-family: "Noto Sans", sans-serif;
 }
