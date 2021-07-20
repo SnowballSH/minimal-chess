@@ -5,8 +5,8 @@
     <link rel="icon" type="image" href="/minimal-chess/assets/SnowballSH.b1eeae3b.ico"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Minimal Chess</title>
-<script type="module" crossorigin src="/minimal-chess/assets/index.bf7e0556.js"></script>
-  <link rel="stylesheet" href="/minimal-chess/assets/index.8ed98136.css">
+<script type="module" crossorigin src="/minimal-chess/assets/index.43279c99.js"></script>
+  <link rel="stylesheet" href="/minimal-chess/assets/index.278ca2a7.css">
 </head>
 <body>
 <div id="app">
@@ -85,6 +85,91 @@
                     </option>
                 </select>
             </label>
+        </div>
+
+        <br/>
+
+        <div class="rules">
+            <h1>How to play</h1>
+
+            <br/>
+            <hr/>
+            <br/>
+
+            <h2>Board and Game</h2>
+
+            <h4>On the game board, every game has black triangles on the side and corners, indicating which squares it
+                can move to. A piece can only move one square at a time.</h4>
+            <h4>Yellow moves first, and Blue moves second.</h4>
+
+            <br/>
+            <hr/>
+            <br/>
+
+            <h2>Pieces</h2>
+
+            <h4>There are 5 kinds of pieces on the board: 子(pawn), 相(bishop), 王(rook), 侯(Queen but less powerful), and
+                将(king)</h4>
+            <h4>Similar to Chess, if a player's king gets captured, the player loses.</h4>
+            <h4>The pieces move like the following:</h4>
+
+            <div style="padding: 3px">
+                <h4>
+                    子(pawn): One square forward
+                </h4>
+                <h4>
+                    相(bishop): One square diagonally
+                </h4>
+                <h4>
+                    王(rook): One square sideways
+                </h4>
+                <h4>
+                    侯(Queen): One square to sideways or front corners
+                </h4>
+                <h4>
+                    将(king): One square in any direction
+                </h4>
+            </div>
+
+            <br/>
+            <hr/>
+            <br/>
+
+            <h2>Additional Rules</h2>
+
+            <h4>If the square your piece is landing on is one of your own piece, you cannot move to that square</h4>
+            <h4>If the square your piece is landing on is one of your opponent's piece, you may capture it. When a piece
+                is captured, it becomes <strong>yours</strong> and stays in the pool. At any turn you may put a piece in
+                the
+                pool back onto the board instead of moving a piece.</h4>
+            <h4>You have to make a move on each turn, either moving a piece or reviving a piece in the pool. You cannot
+                skip. If you have no good moves, you are in a zugzwang position, but you have to admit and make a best
+                move.</h4>
+            <h4>If both players made no capture in the last 20 moves, the game is a draw.</h4>
+
+            <br/>
+            <hr/>
+            <br/>
+
+            <h2>Using the website</h2>
+
+            <h4>There are five panels on this website: board, pool, status, control, and rules.</h4>
+            <h4>In the control panel, you can start a game, choose opponent, and change piece types. If you are not
+                comfortable with the Chinese symbols, you can change it to international chess-like pieces.</h4>
+            <h4>Have fun!</h4>
+
+            <br/>
+            <hr/>
+            <br/>
+
+            <h2>About the website</h2>
+
+            <h4>This project is open-source. You can view the source code on <a
+                    href="https://github.com/SnowballSH/minimal-chess">Github.</a></h4>
+            <h4>This website is made by SnowballSH. It is licensed under GNU General Public License 3.0. If you want to
+                use it, please review the <a href="https://github.com/SnowballSH/minimal-chess/blob/master/LICENSE">license
+                    file</a>. You are allowed to use it for commercial use, but you are not allowed to claim it as your
+                own.</h4>
         </div>
     </div>
 
