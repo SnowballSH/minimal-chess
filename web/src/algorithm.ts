@@ -7,7 +7,7 @@ const QUIESCENCE_SEARCH_LIMIT = 95;
 const EVAL_ROUGHNESS = 8;
 const STOP_SEARCH = END * Math.PI;
 
-function evalBoard(board: Board, ply: number) {
+function evalBoard(board: Board, ply: number, heavy?: boolean) {
     if (board.status === Status.YellowWin) {
         return board.colorToMove === Color.Yellow ? END - ply : -END + ply;
     }
@@ -26,13 +26,13 @@ function evalBoard(board: Board, ply: number) {
         const modifier = board.colorToMove === piece?.color ? 1 : -1;
 
         switch (piece?.type) {
-            case PieceType.Jiang:
+            case PieceType.Wang:
                 result += 20000 * modifier;
                 break;
             case PieceType.Zi:
                 result += 100 * modifier;
                 break;
-            case PieceType.Wang:
+            case PieceType.Jiang:
                 result += 250 * modifier;
                 break;
             case PieceType.Xiang:
@@ -51,13 +51,27 @@ function evalBoard(board: Board, ply: number) {
             case PieceType.Zi:
                 result += 40 * modifier;
                 break;
-            case PieceType.Wang:
+            case PieceType.Jiang:
                 result += 80 * modifier;
                 break;
             case PieceType.Xiang:
                 result += 80 * modifier;
                 break;
         }
+    }
+
+    if (heavy) {
+        result += Array.from(board.legalMoves(x => x === PieceType.Wang)).length * 10;
+        result += Array.from(board.legalMoves(x => x === PieceType.Jiang
+            || x === PieceType.Xiang
+            || x === PieceType.Hou)).length * 25;
+
+        board.nullMove();
+        result -= Array.from(board.legalMoves(x => x === PieceType.Wang)).length * 10;
+        result -= Array.from(board.legalMoves(x => x === PieceType.Jiang
+            || x === PieceType.Xiang
+            || x === PieceType.Hou)).length * 25;
+        board.undoMove();
     }
 
     return result;
@@ -88,7 +102,7 @@ export class SunfishSearcher {
     startTime: number = new Date().getTime();
     durationMS: number = 600;
 
-    bound(board: Board, gamma: number, depth: number, ply: number, root: boolean): number {
+    bound(board: Board, gamma: number, depth: number, ply: number, root: boolean, heavy?: boolean): number {
         this.nodes++;
         this.seldepth = Math.max(ply, this.seldepth);
 
@@ -113,7 +127,7 @@ export class SunfishSearcher {
         let best = -END;
 
         if (depth <= 0) {
-            let score = evalBoard(board, ply);
+            let score = evalBoard(board, ply, heavy);
             best = Math.max(best, score);
         }
 
@@ -122,7 +136,7 @@ export class SunfishSearcher {
             if (m !== undefined) {
                 board.makeMove(m);
                 if (depth > 0 || evalBoard(board, ply) >= QUIESCENCE_SEARCH_LIMIT) {
-                    let score = -this.bound(board, 1 - gamma, depth - 1, ply + 1, false);
+                    let score = -this.bound(board, 1 - gamma, depth - 1, ply + 1, false, heavy);
                     board.undoMove();
                     if (score === STOP_SEARCH) {
                         return STOP_SEARCH;
@@ -148,7 +162,7 @@ export class SunfishSearcher {
             for (const e of moves) {
                 if (depth > 0 || (-e.score >= QUIESCENCE_SEARCH_LIMIT && evalBoard(board, ply) - e.score > best)) {
                     board.makeMove(e.move);
-                    let score = -this.bound(board, 1 - gamma, depth - 1, ply + 1, false);
+                    let score = -this.bound(board, 1 - gamma, depth - 1, ply + 1, false, heavy);
                     board.undoMove();
                     if (score === STOP_SEARCH) return STOP_SEARCH;
                     best = Math.max(best, score);
@@ -187,7 +201,7 @@ export class SunfishSearcher {
         return best;
     }
 
-    public search(board: Board, durationMS: number, maxDepth?: number) {
+    public search(board: Board, durationMS: number, maxDepth?: number, heavy?: boolean) {
         this.durationMS = durationMS;
         this.nodes = 0;
         this.depth = 0;
@@ -201,7 +215,7 @@ export class SunfishSearcher {
             let upper = END;
             while (lower < upper - EVAL_ROUGHNESS) {
                 let gamma = Math.floor((lower + upper + 1) / 2);
-                let score = this.bound(board, gamma, this.depth, 0, true);
+                let score = this.bound(board, gamma, this.depth, 0, true, heavy);
                 if (score === STOP_SEARCH) {
                     lower = STOP_SEARCH;
                     break;
@@ -216,7 +230,7 @@ export class SunfishSearcher {
             if (lower === STOP_SEARCH) {
                 break;
             }
-            let score = this.bound(board, lower, this.depth, 0, true);
+            let score = this.bound(board, lower, this.depth, 0, true, heavy);
             if (score === STOP_SEARCH) {
                 break;
             }

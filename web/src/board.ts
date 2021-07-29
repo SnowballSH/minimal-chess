@@ -31,15 +31,15 @@ export class Board {
             new Piece(PieceType.Xiang, Color.Yellow),
             null,
             null,
-            new Piece(PieceType.Xiang, Color.Blue),
-            new Piece(PieceType.Jiang, Color.Yellow),
-            new Piece(PieceType.Zi, Color.Yellow),
-            new Piece(PieceType.Zi, Color.Blue),
             new Piece(PieceType.Jiang, Color.Blue),
             new Piece(PieceType.Wang, Color.Yellow),
-            null,
-            null,
+            new Piece(PieceType.Zi, Color.Yellow),
+            new Piece(PieceType.Zi, Color.Blue),
             new Piece(PieceType.Wang, Color.Blue),
+            new Piece(PieceType.Jiang, Color.Yellow),
+            null,
+            null,
+            new Piece(PieceType.Xiang, Color.Blue),
         ];
 
         for (let i = 0; i < 22; i++) {
@@ -157,7 +157,7 @@ export class Board {
                 const t = Object.create(this.board[m.to]);
                 this.board[m.to] = p;
                 // win detection
-                if (t.type === PieceType.Jiang && this.status === Status.OnGoing) {
+                if (t.type === PieceType.Wang && this.status === Status.OnGoing) {
                     this.status = t.color === Color.Yellow ? Status.BlueWin : Status.YellowWin;
                 } else {
                     t.color ^= 1;
@@ -171,7 +171,7 @@ export class Board {
                 const t = Object.create(this.board[m.to]);
                 this.board[m.to] = p !== null ? new Piece(PieceType.Hou, p.color) : null;
                 // win detection
-                if (t.type === PieceType.Jiang && this.status === Status.OnGoing) {
+                if (t.type === PieceType.Wang && this.status === Status.OnGoing) {
                     this.status = t.color === Color.Yellow ? Status.BlueWin : Status.YellowWin;
                 } else {
                     t.color ^= 1;
@@ -200,6 +200,18 @@ export class Board {
         }
     }
 
+    nullMove() {
+        this.history.push({
+            board: [...this.board],
+            status: this.status,
+            pool: [...this.pool],
+            msc: this.movesSinceLastCapture,
+        });
+
+        this.colorToMove ^= 1;
+        this.calculateHash();
+    }
+
     undoMove() {
         const h = this.history.pop()!;
         this.board = h.board;
@@ -210,9 +222,11 @@ export class Board {
         this.calculateHash();
     }
 
-    * legalMoves() {
+    * legalMoves(filter?: (x: PieceType | undefined) => boolean) {
+        let pieces = filter === undefined ? this.piecesForColor(this.colorToMove) :
+            Array.from(this.piecesForColor(this.colorToMove)).filter(x => filter(x[1]?.type));
         // normal moves
-        for (const [index, piece] of this.piecesForColor(this.colorToMove)) {
+        for (const [index, piece] of pieces) {
             if (piece === null) continue;
 
             for (const dir of piece.pieceDirections()) {
@@ -346,9 +360,9 @@ export class Piece {
     pieceDirections(): Direction[] {
         const piece = this;
         switch (piece.type) {
-            case PieceType.Jiang:
-                return [0, 1, 2, 3, 4, 5, 6, 7];
             case PieceType.Wang:
+                return [0, 1, 2, 3, 4, 5, 6, 7];
+            case PieceType.Jiang:
                 return [Direction.N, Direction.E, Direction.S, Direction.W];
             case PieceType.Xiang:
                 return [Direction.NE, Direction.NW, Direction.SE, Direction.SW];
