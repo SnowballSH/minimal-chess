@@ -69,11 +69,11 @@ function drawPieceOnSquare(square: HTMLDivElement, val: Piece) {
 </path></svg>${getPieceSVG(val)}</div>`;
             break;
         case PieceType.Jiang:
-            square.innerHTML = `<div>${svgPrefix32}<path d="M0 22-6 16 0 10M10 32 16 38 22 32M32 22 38 16 32 10M22 0 16-6 10 0">
+            square.innerHTML = `<div>${svgPrefix32}<path d="M0 0H8L0 8M24 0H32V8M32 24V32H24M0 32H8L0 24M0 22-6 16 0 10M10 32 16 38 22 32M32 22 38 16 32 10M22 0 16-6 10 0">
 </path></svg>${getPieceSVG(val)}</div>`;
             break;
         case PieceType.Wang:
-            square.innerHTML = `<div>${svgPrefix32}<path d="M0 0H8L0 8M24 0H32V8M32 24V32H24M0 32H8L0 24M0 22-6 16 0 10M10 32 16 38 22 32M32 22 38 16 32 10M22 0 16-6 10 0">
+            square.innerHTML = `<div>${svgPrefix32}<path d="M0 22-6 16 0 10M10 32 16 38 22 32M32 22 38 16 32 10M22 0 16-6 10 0">
 </path></svg>${getPieceSVG(val)}</div>`;
             break;
         case PieceType.Zi:
